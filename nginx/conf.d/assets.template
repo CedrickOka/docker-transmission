@@ -1,0 +1,17 @@
+server {
+	listen 80 default_server;
+	listen [::]:80 default_server;
+
+	allow ${ALLOWED_IP_ADDRESSES};
+	deny all;
+
+	#charset koi8-r;
+
+	location / {
+		expires 90d;
+		root /var/www/assets;
+	}
+	
+	access_log  /var/log/nginx/assets_access.log  main;
+    error_log /var/log/nginx/assets_error.log;
+}

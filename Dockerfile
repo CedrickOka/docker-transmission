@@ -1,34 +1,28 @@
-FROM ubuntu:bionic
+FROM alpine:3.14.0
 LABEL vendor="cedrickoka/transmission" maintainer="okacedrick@gmail.com" version="1.0.0"
 
-# Fix debconf warnings upon build
-ARG DEBIAN_FRONTEND=noninteractive
+WORKDIR /opt/transmission
 
-RUN apt-get update \
-	&& apt-get install -y nano software-properties-common \
-    && apt-get clean; rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
+## Install system dependencies
+RUN apk update && \
+	apk add --no-cache \
+		transmission-daemon=3.00-r3
 
-RUN add-apt-repository ppa:transmissionbt/ppa \
-	&& apt-get install -y transmission-cli transmission-common transmission-daemon \
-    && apt-get clean; rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
+ENV LOG_DIR=/dev/stdout
+ENV CONFIG_DIR=/var/lib/transmission-daemon/info
+ENV RPC_USERNAME=transmission
+ENV RPC_PASSWORD=transmission
+ENV ALLOWED_IP_ADDRESSES=*
+ENV PEER_PORT=51413
 
-COPY settings.json /var/lib/transmission-daemon/info/settings.json
+COPY settings.json "$CONFIG_DIR/settings.json"
+COPY docker-transmission-entrypoint.sh /usr/local/bin/docker-transmission-entrypoint.sh
 
-ARG TRANSMISSION_RPC_USERNAME=transmission
-ARG TRANSMISSION_RPC_PASSWORD=transmission
-ARG TRANSMISSION_PEER_PORT=51413
-ARG TRANSMISSION_ALLOWED_IP_ADDRESSES=*
-
-ENV RPC_USERNAME=$TRANSMISSION_RPC_USERNAME
-ENV RPC_PASSWORD=$TRANSMISSION_RPC_PASSWORD
-ENV PEER_PORT=$TRANSMISSION_PEER_PORT
-ENV ALLOWED_IP_ADDRESSES=$TRANSMISSION_ALLOWED_IP_ADDRESSES
+RUN chmod a+x /usr/local/bin/docker-transmission-entrypoint.sh
 
 EXPOSE 9091 51413
 
 STOPSIGNAL SIGTERM
 
-ADD entrypoint.sh /entrypoint.sh
-RUN chmod 0777 /entrypoint.sh
-
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["docker-transmission-entrypoint.sh"]
+CMD transmission-daemon -f --username "$RPC_USERNAME" --password "$RPC_PASSWORD" --peerport $PEER_PORT --allowed "$ALLOWED_IP_ADDRESSES" --config-dir "$CONFIG_DIR" --logfile "$LOG_DIR"

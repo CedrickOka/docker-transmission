@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+    nginx:
+        command: > 
+          /bin/sh -c "envsubst '$$ALLOWED_IP_ADDRESSES' < /etc/nginx/conf.d/assets.template > /etc/nginx/conf.d/assets.conf && 
+            exec nginx -g 'daemon off;'"
+        depends_on:
+          - transmission
+        environment:
+            ALLOWED_IP_ADDRESSES: ${ASSETS_ALLOWED_IP_ADDRESSES:-127.0.0.1}
+        image: nginx:alpine
+        restart: always
+        volumes:
+          - transmission-download-dir:/var/www/assets
+          - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+          - ./nginx/conf.d/assets.template:/etc/nginx/conf.d/assets.template
+
+    transmission:
+        build:
+            context: ./
+            dockerfile: Dockerfile
+        environment:
+            RPC_USERNAME: ${RPC_USERNAME:-transmission}
+            RPC_PASSWORD: ${RPC_PASSWORD:-transmission}
+            PEER_PORT: ${PEER_PORT:-51413}
+            ALLOWED_IP_ADDRESSES: ${TRANSMISSION_ALLOWED_IP_ADDRESSES:-*}
+        image: cedrickoka/transmission
+        ports:
+          - ${TRANSMISSION_PUBLISHED_PORT:-9091}:9091
+        restart: always
+        volumes:
+          - transmission-incomplete-dir:/opt/transmission/incomplete-downloads
+          - transmission-download-dir:/opt/transmission/downloads
+
+volumes:
+    transmission-incomplete-dir:
+    transmission-download-dir:

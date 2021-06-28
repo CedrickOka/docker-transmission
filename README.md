@@ -6,4 +6,4 @@ The BitTorrent protocol can be used to reduce the server and network impact of d
 
 This How-to focuses on CLI (Command Line Interface) and the Web interface
 
-[Transmission](https://help.ubuntu.com/community/TransmissionHowTo) has been configured to work out of the box on a desktop. Because this how-to is designed for Ubuntu server we need to manually allow remote access. 
+[Transmission](https://help.ubuntu.com/community/TransmissionHowTo) has been configured to work out of the box on a desktop. Because this how-to is designed for Ubuntu server we need to manually allow remote access.
