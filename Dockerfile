@@ -8,8 +8,10 @@ RUN apk update && \
 	apk add --no-cache \
 		transmission-daemon=3.00-r3
 
+ARG CONFIG_DIR=/var/lib/transmission-daemon/info
+
 ENV LOG_DIR=/dev/stdout
-ENV CONFIG_DIR=/var/lib/transmission-daemon/info
+ENV CONFIG_DIR=$CONFIG_DIR
 ENV RPC_USERNAME=transmission
 ENV RPC_PASSWORD=transmission
 ENV ALLOWED_IP_ADDRESSES=*
